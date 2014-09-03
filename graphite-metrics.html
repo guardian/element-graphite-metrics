@@ -1,0 +1,138 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script src="../reqwest/reqwest.js"></script>
+
+<!--
+Element to fetch Graphite metrics data.
+
+##### Example
+
+    <graphite-metrics baseUri="https://graphite.example.com"
+                      target="ganglia.__SummaryInfo__.requests_latency-MyApp.sum"
+                      since="{{timeStart}}"
+                      until="{{timeEnd}}"
+                      sink="{{data}}"></graphite-metrics>
+
+@element graphite-metrics
+@blurb Element to fetch Graphite metrics data.
+@status alpha
+-->
+<polymer-element name="graphite-metrics" attributes="baseUri target since until sink">
+  <script>
+    function daysAgo(n) {
+      var ago = new Date();
+      ago.setDate(ago.getDate() - n);
+      return ago;
+    }
+
+    function graphiteRequest(baseUri, params) {
+      return reqwest({
+        url: baseUri + '/render',
+        crossOrigin: true,
+        data: params
+      }).then(function(resp) {
+        return resp[0];
+      }).then(function(response) {
+        return response.datapoints.map(function(datapoint) {
+          return [new Date(datapoint[1] * 1000), datapoint[0]];
+        });
+      });
+    }
+
+    function loadData(baseUri, target, since, until, resolution) {
+      var diffSeconds = (until - since) / 1000;
+      var periodSeconds = Math.max(1, Math.round(diffSeconds / resolution));
+      // Use summarize to apply sampling
+      // FIXME: disabled sampling as it smoothes the data too much
+      // var summarisedTarget = 'summarize(' +target+ ',"' +periodSeconds+ 'sec","avg")';
+      var summarisedTarget = target;
+      return graphiteRequest(baseUri, {
+        format: 'json',
+        from:   Math.round(since.getTime() / 1000),
+        until:  Math.round(until.getTime() / 1000),
+        target: summarisedTarget
+      });
+    }
+
+    Polymer('graphite-metrics', {
+      observe: {
+        // Currently only used to trigger a refresh
+        baseUri:    'update',
+        target:     'update',
+        since:      'update',
+        until:      'update',
+        resolution: 'update'
+      },
+
+      /**
+       * The base URI for the Graphite API server (without /render path).
+       *
+       * @attribute baseUri
+       * @type String
+       */
+      baseUri: undefined,
+
+      /**
+       * The metrics target to query.
+       *
+       * @attribute target
+       * @type String
+       */
+      target: undefined,
+
+      // FIXME: allow strings as since/until and convert to Date
+
+      /**
+       * The start of the time range to query.
+       *
+       * @attribute since
+       * @type Date
+       */
+      since: undefined,
+
+      /**
+       * The end of the time range to query.
+       *
+       * @attribute until
+       * @type Date
+       */
+      until: undefined,
+
+      /**
+       * The number of datapoints to try and requests.
+       *
+       * @attribute resolution
+       * @type Number
+       */
+      resolution: 60,
+
+      /**
+       * The read-only `sink` attribute...
+       *
+       * @attribute sink
+       * @type Array
+       */
+      sink: [],
+
+
+      /* == Lifecycle == */
+
+      ready: function() {
+        this.update();
+      },
+
+
+      /* == Internal methods == */
+
+      update: function() {
+        // FIXME: hacky way to wait until data binding has resolved since/until
+        if (this.target && this.since && this.until && this.resolution) {
+          var resolution = Number(this.resolution);
+          loadData(this.baseUri, this.target, this.since, this.until, resolution).then(function(datapoints) {
+            this.sink = datapoints;
+          }.bind(this));
+        }
+      }
+    });
+  </script>
+</polymer-element>
