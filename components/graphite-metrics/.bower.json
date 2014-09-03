@@ -1,0 +1,28 @@
+{
+  "name": "graphite-metrics",
+  "authors": [
+    "Sébastien Cevey <seb.cevey@theguardian.com>"
+  ],
+  "description": "Element to fetch Graphite metrics data",
+  "keywords": "graphite, metrics, monitoring, polymer, web-components",
+  "main": "graphite-metrics.html",
+  "license": "Apache-2",
+  "homepage": "https://github.com/guardian/element-graphite-metrics/",
+  "ignore": [
+    "**/.*"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.3.4",
+    "polymer-test-tools": "Polymer/polymer-test-tools#~0.3.3"
+  },
+  "_release": "cb4af0106f",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "cb4af0106f618520962b56f6798e69b785df9644"
+  },
+  "_source": "git://github.com/guardian/element-graphite-metrics.git",
+  "_target": "master",
+  "_originalSource": "guardian/element-graphite-metrics",
+  "_direct": true
+}

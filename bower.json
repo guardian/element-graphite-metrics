@@ -1,0 +1,7 @@
+{
+  "name": "element-graphite-metrics#gh-pages",
+  "private": true,
+  "dependencies": {
+    "graphite-metrics": "guardian/element-graphite-metrics#master"
+  }
+}
